@@ -1,7 +1,8 @@
 var express = require('express');
+
 var router = express.Router();
 
-/* GET home page. */
+/* GET HTML home page. */
 router.get('/', function(req, res) {
   res.render('index');
 });
@@ -29,5 +30,6 @@ router.get('/page', function(req, res) {
 router.get('/reader', function(req, res) {
   res.render('webindex');
 });
+
 
 module.exports = router;
