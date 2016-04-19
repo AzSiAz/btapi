@@ -1,8 +1,7 @@
 ## Baka Tsuki API
 
 [![Join the chat at https://gitter.im/Shadowys/btapi](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Shadowys/btapi?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/Shadowys/btapi.png?branch=master)](https://travis-ci.org/Shadowys/btapi)
-[![Dependency Status](https://www.versioneye.com/user/projects/56259c7736d0ab0019000c4c/badge.svg?style=flat)](https://www.versioneye.com/user/projects/56259c7736d0ab0019000c4c)
+[![Dependency Status](https://www.versioneye.com/user/projects/5716797dfcd19a0039f1787a/badge.svg?style=flat)](https://www.versioneye.com/user/projects/5716797dfcd19a0039f1787a)
 
 [![](https://www.baka-tsuki.org/blog/wp-content/uploads/2012/04/logo.gif)](https://www.baka-tsuki.org/project/index.php?title=Main_Page)
 
