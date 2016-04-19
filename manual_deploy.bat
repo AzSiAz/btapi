@@ -1,1 +1,0 @@
-ssh -t 5618aea889f5cf436600003a@btapi-shadowys.rhcloud.com 'gear deploy master'
