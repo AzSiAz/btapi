@@ -17,6 +17,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Format JSON in browser
+app.set('json spaces', 2);
+
+
 //routes to use for the application
 app.use('/', require('./routes/index'));
 app.use('/api', require('./routes/api'));
