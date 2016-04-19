@@ -40,5 +40,4 @@ app.use(function(err, req, res, next) {
     });
 });
 
-
-module.exports = app;
+app.listen(3003,'0.0.0.0');
