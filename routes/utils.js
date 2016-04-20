@@ -1,6 +1,14 @@
 var https = require('https');
+var moment = require("moment");
+
 //Utility functions
 utils = {};
+
+utils.parseDate = function (date) {
+  date = date.trim().replace(".", "").replace("at", "").replace(",", "");
+  date = moment(date, "DD MMMM YYYY HH:mm", 'en');
+  return date.toDate();
+}
 
 utils.mergeObjects = function(obj1, obj2) {
   var finalobj = {};
@@ -46,7 +54,7 @@ utils.arrayUnique = function(a) {
 };
 
 utils.downloadJSONfromBakaTsukiMediaWiki = function(url_params, callback) {
-  https.get(encodeURI("https://www.baka-tsuki.org/project/api.php?format=json&"+url_params), function(res) {
+  https.get(encodeURI("https://www.baka-tsuki.org/project/api.php?format=json&" + url_params), function(res) {
     var data = "";
     res.on('data', function (chunk) {
       data += chunk;
@@ -60,7 +68,7 @@ utils.downloadJSONfromBakaTsukiMediaWiki = function(url_params, callback) {
 }
 
 utils.downloadHTMLfromBakaTsuki=function(url_params, callback) {
-  https.get(encodeURI("https://www.baka-tsuki.org/project/index.php?title="+url_params), function(res) {
+  https.get(encodeURI("https://www.baka-tsuki.org/project/index.php?title=" + url_params), function(res) {
     var data = "";
     res.on('data', function (chunk) {
       data += chunk;

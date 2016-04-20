@@ -36,13 +36,13 @@ novels.seriesGenreFilterByDownload = function(postdata, res) {
   //general category search.
   //As such it will not be maintained.
   if (postdata.list) { 
-    var postlist=postdata.list.split("|").map(function(ele) {
+    var postlist = postdata.list.split("|").map(function(ele) {
       return utils.capitalizeFirstLetter(ele.replace(/Genre[\s_]?-[\s_]?/i,""));
     });
     function getAllGenres(genreList, tempdata) {
       if (!tempdata) tempdata = {};
       var url = "action=query&prop=info|revisions&generator=categorymembers&gcmlimit=500&gcmtype=page&gcmtitle=Category:Genre_-_";
-      if (genreList.length>0){
+      if (genreList.length > 0) {
         url += utils.last(genreList);
         utils.downloadJSONfromBakaTsukiMediaWiki(url, function(jsondata) {
           if (jsondata.query && jsondata.query.pages){
@@ -76,7 +76,7 @@ novels.seriesGenreFilterByDownload = function(postdata, res) {
 }
 
 novels.lastUpdatesTimeByDownload = function (postdata, res) {
-  if(postdata.titles || postdata.pageids){
+  if (postdata.titles || postdata.pageids) {
     //This method does not allow checking if the page has just been created
     //That will have to depend on local caching on the application
     //As there would have to be a reference time to check if the page has been created or not.
@@ -319,15 +319,18 @@ novels.seriesTitleFilterByDownload = function (postdata, res) {
           res.send({"error":"Page does not exist."});
           return false;
         }
-
-        $("body").replaceWith($("#content"));   
+        
+        var date = $("#footer-info-lastmod").html();
+        $("body").replaceWith($("#content"));
         //Preload the data for the light novel
+        
         data.title = postdata.title;
         data.sections = [];
         var status = $("table:contains('Project')").text().match(/HALTED|IDLE|ABANDONED|WARNING/i);
         data.status = status ? status[0] : "active";
         data.author = "";
         data.synopsis = "";
+        data.date = utils.parseDate(date);
         $("table:contains(Project)").html("");
         data.cover = $(".thumbinner").find("img").attr('src');
         if (!data.cover) {
