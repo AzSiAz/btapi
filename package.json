@@ -9,10 +9,6 @@
     "test": "./node_modules/.bin/mocha --reporter spec",
     "coverage-report": "./node_modules/.bin/mocha --reporter spec --require blanket -R html-cov > coverage.html"
   },
-  "engines": {
-    "node": "0.12.2",
-    "npm": "2.11.3"
-  },
   "config": {
     "blanket": {
       "pattern": [
