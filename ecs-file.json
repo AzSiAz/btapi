@@ -1,0 +1,22 @@
+{
+  "container_definitions": [
+    {
+      "name": "app",
+      "port_mappings": [
+        {
+          "protocol": "tcp",
+          "container_port": 3000,
+          "host_port": 0
+        }
+      ],
+      "image": "",
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        }
+      ]
+    }
+  ],
+  "family": "AzSiAzbtapi"
+}

@@ -1,0 +1,12 @@
+---
+version: '2'
+services:
+  app:
+    ports:
+    - 3000:3000
+    extends:
+      service: common
+  common:
+    build: "."
+    environment:
+      NODE_ENV: production
