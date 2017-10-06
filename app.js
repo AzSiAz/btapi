@@ -42,5 +42,5 @@ app.use(function(err, req, res, next) {
         error: {}
     });
 });
-
-app.listen(3003,'0.0.0.0');
+const port = process.env.PORT || 3003
+app.listen(port, '0.0.0.0');
