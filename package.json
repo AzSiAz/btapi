@@ -4,16 +4,15 @@
   "description": "baka tsuki api clean up",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "NODE_ENV=production node app.js",
     "devstart": "./node_modules/.bin/nodemon ./bin/www",
     "test": "./node_modules/.bin/mocha --reporter spec",
-    "coverage-report": "./node_modules/.bin/mocha --reporter spec --require blanket -R html-cov > coverage.html"
+    "coverage-report":
+      "./node_modules/.bin/mocha --reporter spec --require blanket -R html-cov > coverage.html"
   },
   "config": {
     "blanket": {
-      "pattern": [
-        "routes"
-      ]
+      "pattern": ["routes"]
     }
   },
   "license": "ISC",
