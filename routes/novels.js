@@ -1,5 +1,5 @@
-var cheerio = require('cheerio')
-var utils = require('./utils')
+const cheerio = require('cheerio')
+const utils = require('./utils')
 
 novels = {}
 
