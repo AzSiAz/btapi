@@ -1,35 +1,34 @@
-var express = require('express');
+var express = require('express')
 
-var router = express.Router();
+var router = express.Router()
 
 /* GET HTML home page. */
 router.get('/', function(req, res) {
-  res.render('index');
-});
+  res.render('index')
+})
 
 router.get('/series', function(req, res) {
-  res.render('series');
-});
+  res.render('series')
+})
 
 router.get('/category', function(req, res) {
-  res.render('category');
-});
+  res.render('category')
+})
 
 router.get('/time', function(req, res) {
-  res.render('time');
-});
+  res.render('time')
+})
 
 router.get('/genre', function(req, res) {
-  res.render('genre');
-});
+  res.render('genre')
+})
 
 router.get('/page', function(req, res) {
-  res.render('page');
-});
+  res.render('page')
+})
 
 router.get('/reader', function(req, res) {
-  res.render('webindex');
-});
+  res.render('webindex')
+})
 
-
-module.exports = router;
+module.exports = router

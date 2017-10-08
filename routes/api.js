@@ -1,46 +1,46 @@
-var express = require('express');
-var novels=require('./novels');
+var express = require('express')
+var novels = require('./novels')
 
-var router = express.Router();
+var router = express.Router()
 
-function routeHandler(req,res,route_name,callback){
-  postdata = req.query;
+const routeHandler = (req, res, routeName, callback) => {
+  const postdata = req.query
   if (Object.keys(postdata).length < 1) {
-    res.redirect(route_name);
-  }
-  else {
+    res.redirect(routeName)
+  } else {
     //Allow anyone to access the data, can be set to specific domain
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    try {      
-      callback(postdata, res);
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    try {
+      return callback(postdata, res)
+    } catch (err) {
+      res.send({ error: err })
     }
-    catch(err) {
-      res.send({
-        "error" : err
-      });
-    }
-  }  
+  }
 }
 
-router.get('/',function(req,res){
-  routeHandler(req, res, "/series.html", novels.seriesTitleFilterByDownload);
+router.get('/', function(req, res) {
+  routeHandler(req, res, '/series.html', novels.seriesTitleFilterByDownload)
 })
 
-router.get('/category',function(req,res){
-  routeHandler(req, res, "/category.html", novels.seriesCategoryFilterByDownload);
+router.get('/category', function(req, res) {
+  routeHandler(
+    req,
+    res,
+    '/category.html',
+    novels.seriesCategoryFilterByDownload
+  )
 })
 
-router.get('/genre',function(req,res){
-  routeHandler(req, res, "/genre.html", novels.seriesGenreFilterByDownload);
+router.get('/genre', function(req, res) {
+  routeHandler(req, res, '/genre.html', novels.seriesGenreFilterByDownload)
 })
 
-router.get('/time',function(req,res){
-  routeHandler(req, res, "/time.html", novels.lastUpdatesTimeByDownload)
+router.get('/time', function(req, res) {
+  routeHandler(req, res, '/time.html', novels.lastUpdatesTimeByDownload)
 })
 
-router.get('/page',function(req,res){
-  routeHandler(req, res, "/page.html", novels.pageDownload)
+router.get('/page', function(req, res) {
+  routeHandler(req, res, '/page.html', novels.pageDownload)
 })
 
-
-module.exports = router;
+module.exports = router

@@ -1,16 +1,16 @@
-var express = require('express')
-var path = require('path')
-var logger = require('morgan')
-var cookieParser = require('cookie-parser')
-var bodyParser = require('body-parser')
-var compress = require('compression')
+const express = require('express')
+const path = require('path')
+const logger = require('morgan')
+const cookieParser = require('cookie-parser')
+const bodyParser = require('body-parser')
+const compress = require('compression')
 
-var app = express()
+const app = express()
 const port = process.env.PORT || 3003
 
 // express app setup
 app.set('views', path.join(__dirname, 'views'))
-app.set('view engine', 'jade')
+app.set('view engine', 'pug')
 app.use(compress())
 app.use(logger('dev'))
 app.use(bodyParser.json())
@@ -27,7 +27,7 @@ app.use('/api', require('./routes/api'))
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found')
+  const err = new Error('Not Found')
   err.status = 404
   next(err)
 })
