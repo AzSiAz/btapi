@@ -3,12 +3,17 @@
   "version": "1.0.0",
   "description": "baka tsuki api clean up",
   "main": "app.js",
+  "bin": "app.js",
   "scripts": {
     "start": "NODE_ENV=production node app.js",
+    "build": "pkg --out-path build .",
     "devstart": "./node_modules/.bin/nodemon ./bin/www",
     "test": "./node_modules/.bin/mocha --reporter spec",
     "coverage-report":
       "./node_modules/.bin/mocha --reporter spec --require blanket -R html-cov > coverage.html"
+  },
+  "pkg": {
+    "assets": ["views/**/*", "public/**/*"]
   },
   "config": {
     "blanket": {
@@ -32,6 +37,7 @@
     "compression": "^1.7.1",
     "cookie-parser": "^1.4.3",
     "express": "^4.16.1",
+    "pkg": "^4.2.5",
     "pug": "^2.0.0-rc.4",
     "marked": "^0.3.6",
     "moment": "^2.18.1",
