@@ -840,11 +840,11 @@ novels.seriesTitleFilterByDownload = (postdata, res) => {
           data.series[serieskey].books = tempvol
         }
       }
-      if (one_off) {
-        data.series.map(ele => {
-          // return ele.renameProperty('books', 'chapters')
-        })
-      }
+      // if (one_off) {
+      //   data.series.map(ele => {
+      //     return ele.renameProperty('books', 'chapters')
+      //   })
+      // }
       res.send(data)
     })
   }
