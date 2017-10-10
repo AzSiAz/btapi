@@ -217,7 +217,15 @@ novels.seriesCategoryFilterByDownload = (postdata, res) => {
           category
       )
       .then(jsondata => {
-        res.send({
+        const sort = array => {
+          array.titles = array.titles.sort((a, b) => {
+            if (a.title > b.title) return 1
+            if (a.title < b.title) return -1
+            return 0
+          })
+          return array
+        }
+        const json = {
           type: titletype,
           language: language,
           titles: jsondata.query.pages.map(ele => {
@@ -229,7 +237,8 @@ novels.seriesCategoryFilterByDownload = (postdata, res) => {
               pageid: ele.pageid
             }
           })
-        })
+        }
+        res.send(sort(json))
       })
   } else if (postdata.language && !postdata.type) {
     //Only provide a list of title types for the language
