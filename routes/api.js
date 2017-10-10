@@ -18,29 +18,29 @@ const routeHandler = (req, res, routeName, callback) => {
   }
 }
 
-router.get('/', function(req, res) {
+router.get('/', (req, res) =>
   routeHandler(req, res, '/series.html', novels.seriesTitleFilterByDownload)
-})
+)
 
-router.get('/category', function(req, res) {
+router.get('/category', (req, res) =>
   routeHandler(
     req,
     res,
     '/category.html',
     novels.seriesCategoryFilterByDownload
   )
-})
+)
 
-router.get('/genre', function(req, res) {
+router.get('/genre', (req, res) =>
   routeHandler(req, res, '/genre.html', novels.seriesGenreFilterByDownload)
-})
+)
 
-router.get('/time', function(req, res) {
+router.get('/time', (req, res) =>
   routeHandler(req, res, '/time.html', novels.lastUpdatesTimeByDownload)
-})
+)
 
-router.get('/page', function(req, res) {
+router.get('/page', (req, res) =>
   routeHandler(req, res, '/page.html', novels.pageDownload)
-})
+)
 
 module.exports = router

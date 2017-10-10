@@ -4,7 +4,7 @@ const moment = require('moment')
 //Utility functions
 const utils = {}
 
-utils.parseDate = function(date) {
+utils.parseDate = date => {
   let newDate = date
     .trim()
     .replace('.', '')
@@ -14,7 +14,7 @@ utils.parseDate = function(date) {
   return newDate.toDate()
 }
 
-utils.mergeObjects = function(obj1, obj2) {
+utils.mergeObjects = (obj1, obj2) => {
   let finalobj = {}
   if (Object.keys(obj1).length > 0 && Object.keys(obj2).length > 0) {
     //use anyone object can compare if they have the same key.
@@ -29,27 +29,27 @@ utils.mergeObjects = function(obj1, obj2) {
   return finalobj
 }
 
-utils.capitalizeFirstLetter = function(string) {
+utils.capitalizeFirstLetter = string => {
   string = string.toLowerCase()
   return string.charAt(0).toUpperCase() + string.slice(1)
 }
 
-utils.last = function(arr) {
+utils.last = arr => {
   return arr[arr.length - 1]
 }
 
-utils.rest = function(arr) {
+utils.rest = arr => {
   return arr.slice(1, arr.length)
 }
-utils.popb = function(arr) {
+utils.popb = arr => {
   return arr.slice(0, arr.length - 1)
 }
 
-utils.stripNumbering = function(line) {
+utils.stripNumbering = line => {
   return utils.rest(line.replace(/^\s+|\s+$/g, '').split(/ /g)).join(' ')
 }
 
-utils.arrayUnique = function(a) {
+utils.arrayUnique = a => {
   return a.reduce(function(p, c) {
     if (p.indexOf(c) < 0) p.push(c)
     return p
@@ -61,48 +61,12 @@ utils.downloadJSONfromBakaTsukiMediaWiki = function(url_params) {
     'https://www.baka-tsuki.org/project/api.php?format=json&' + url_params
 
   return fetch(encodeURI(url)).then(res => res.json())
-  // .get(
-  //   encodeURI(
-  //     'https://www.baka-tsuki.org/project/api.php?format=json&' + url_params
-  //   ),
-  //   function(res) {
-  //     let data = ''
-  //     res.on('data', function(chunk) {
-  //       data += chunk
-  //     })
-  //     res.on('end', function() {
-  //       callback(JSON.parse(data))
-  //     })
-  //   }
-  // )
-  // .on('error', function(err) {
-  //   callback(null)
-  // })
 }
 
-utils.downloadHTMLfromBakaTsuki = function(url_params) {
+utils.downloadHTMLfromBakaTsuki = url_params => {
   const url = 'https://www.baka-tsuki.org/project/index.php?title=' + url_params
 
   return fetch(encodeURI(url)).then(resp => resp.text())
-  // https
-  //   .get(
-  //     encodeURI(
-  //       'https://www.baka-tsuki.org/project/index.php?title=' + url_params
-  //     ),
-  //     function(res) {
-  //       let data = ''
-  //       res.on('data', function(chunk) {
-  //         data += chunk
-  //       })
-  //       res.on('end', function() {
-  //         callback(data)
-  //       })
-  //     }
-  //   )
-  //   .on('error', function(err) {
-  //     console.log(err)
-  //     callback(null)
-  //   })
 }
 
 Object.defineProperty(Object.prototype, 'map', {

@@ -3,43 +3,61 @@ const utils = require('./utils')
 
 novels = {}
 
-novels.pageDownload = function(postdata, res) {
+novels.pageDownload = (postdata, res) => {
   if (postdata.title) {
     utils.downloadHTMLfromBakaTsuki(postdata.title).then(jsondata => {
-      if (jsondata) {
-        let $ = cheerio.load(jsondata)
-        //Remove any stylesheets and script
-        $('script,link').remove()
-        //We only need the content
-        $('body').replaceWith($('#content'))
-        //Get the absolute URL for links.
-        $('a').each(function() {
-          let ele = $(this).attr('href')
-          if (ele && ele.match(/^\/project/)) {
-            $(this).attr('href', 'https://www.baka-tsuki.org' + ele)
-          }
-        })
-        $('img').each(function() {
-          let ele = $(this).attr('src')
-          if (ele && ele.match(/^\/project/)) {
-            $(this).attr('src', 'https://www.baka-tsuki.org' + ele)
-          }
-        })
-        res.send($.html())
+      let $ = cheerio.load(jsondata)
+      $.prototype.exists = function(selector) {
+        return this.find(selector).length > 0
       }
+      $('script,link').remove()
+
+      let data = $('#mw-content-text')
+
+      // data.children().addClass('baka')
+      data.find('#toc').remove()
+      data.find('.wikitable').remove()
+      data
+        .find('table')
+        .last()
+        .remove()
+      data.find('span.mw-editsection').remove()
+      data.find('sup').remove()
+      data.find('span.mw-cite-backlink').remove()
+      data.find('img').each(function(i, el) {
+        let element = $(el)
+        let srcAttr = element.attr('src')
+        let src = `https://www.baka-tsuki.org${srcAttr}`
+        // if (!element.closest().exists('div.thumb'))
+        // $(`<img src="${src}" alt="chapter img">`).insertBefore(
+        //   element.closest('div.thumb')
+        // )
+        element.attr('src', src)
+        // else element.attr('src', src)
+      })
+      $('a').each((i, el) => {
+        let element = $(el)
+        let href = element.attr('href')
+        if (href && href.match(/^\/project/)) {
+          element.attr('href', 'https://www.baka-tsuki.org' + href)
+        }
+      })
+      // data.find('div.thumb').remove()
+
+      res.send(data.html())
     })
   }
 }
 
-novels.seriesGenreFilterByDownload = function(postdata, res) {
+novels.seriesGenreFilterByDownload = (postdata, res) => {
   //This piece of code will be taken out in favour of a
   //general category search.
   //As such it will not be maintained.
   if (postdata.list) {
-    let postlist = postdata.list.split('|').map(function(ele) {
+    let postlist = postdata.list.split('|').map(ele => {
       return utils.capitalizeFirstLetter(ele.replace(/Genre[\s_]?-[\s_]?/i, ''))
     })
-    function getAllGenres(genreList, tempdata) {
+    const getAllGenres = (genreList, tempdata) => {
       if (!tempdata) tempdata = {}
       let url =
         'action=query&prop=info|revisions&generator=categorymembers&gcmlimit=500&gcmtype=page&gcmtitle=Category:Genre_-_'
@@ -75,7 +93,7 @@ novels.seriesGenreFilterByDownload = function(postdata, res) {
   }
 }
 
-novels.lastUpdatesTimeByDownload = function(postdata, res) {
+novels.lastUpdatesTimeByDownload = (postdata, res) => {
   if (postdata.titles || postdata.pageids) {
     //This method does not allow checking if the page has just been created
     //That will have to depend on local caching on the application
@@ -125,7 +143,7 @@ novels.lastUpdatesTimeByDownload = function(postdata, res) {
     //returns the latest newest pages up to a certain number
     //Mediawiki limits the output to 500 so there might a few calls before you get all the data you need.
     //Use the date time as a continuekey instead.
-    function getLatestRevision(continuekey, maxmatches, data) {
+    const getLatestRevision = (continuekey, maxmatches, data) => {
       let url = 'action=query&list=recentchanges&rclimit=' + maxmatches
       if (continuekey) {
         url += '&rccontinue=' + continuekey
@@ -178,7 +196,7 @@ novels.lastUpdatesTimeByDownload = function(postdata, res) {
 }
 
 //Use transducers instead of for loops
-novels.seriesCategoryFilterByDownload = function(postdata, res) {
+novels.seriesCategoryFilterByDownload = (postdata, res) => {
   //A special method for this as Baka Tsuki treats types and languages as one category each.
   //Example: Light_Novel_(English)
   if (
@@ -202,7 +220,7 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
         res.send({
           type: titletype,
           language: language,
-          titles: jsondata.query.pages.map(function(ele) {
+          titles: jsondata.query.pages.map(ele => {
             return {
               page: ele.title.replace(/ /g, '_'),
               title: ele.title,
@@ -226,10 +244,10 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
         res.send({
           language: language,
           types: jsondata.query.categorymembers
-            .filter(function(ele) {
+            .filter(ele => {
               return ele.title.match(/Category/g)
             })
-            .map(function(ele) {
+            .map(ele => {
               return utils
                 .popb(ele.title.replace(/Category:/g, '').split(/ /g))
                 .join('_')
@@ -252,10 +270,10 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
         res.send({
           types: titletype,
           language: jsondata.query.categorymembers
-            .filter(function(ele) {
+            .filter(ele => {
               return ele.title.match(/Category/g)
             })
-            .map(function(ele) {
+            .map(ele => {
               return ele.title.match(/\((.+)\)/g, '')[0].replace(/[\(\)]/g, '')
             })
         })
@@ -269,7 +287,7 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
       .then(jsondata => {
         res.send({
           type: 'Original novel',
-          titles: jsondata.query.categorymembers.map(function(ele) {
+          titles: jsondata.query.categorymembers.map(ele => {
             return {
               page: ele.title.replace(/ /g, '_'),
               title: ele.title
@@ -285,7 +303,7 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
       )
       .then(jsondata => {
         res.send(
-          jsondata.query.pages.map(function(ele) {
+          jsondata.query.pages.map(ele => {
             return ele.title.replace(/Category:/g, '')
           })
         )
@@ -317,7 +335,7 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
         postlist.push(ele)
       }
     }
-    function getAllGenres(genreList, tempdata, start) {
+    const getAllGenres = (genreList, tempdata, start) => {
       if (tempdata == undefined) tempdata = {}
       if (start == undefined) start = true
       let url =
@@ -341,7 +359,7 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
         //Reorganise the data
         res.send({
           tags: postlist,
-          titles: tempdata.map(function(ele) {
+          titles: tempdata.map(ele => {
             return {
               page: ele.title.replace(/ /g, '_'),
               title: ele.title,
@@ -364,7 +382,7 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
         )
         .then(jsondata => {
           res.send(
-            jsondata.query.pages.map(function(ele) {
+            jsondata.query.pages.map(ele => {
               return ele.title.replace(/Category:/i, '')
             })
           )
@@ -373,470 +391,452 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
   }
 }
 
-novels.seriesTitleFilterByDownload = function(postdata, res) {
+novels.seriesTitleFilterByDownload = (postdata, res) => {
   // Continue only if series title is available.
   if (postdata.title) {
     utils.downloadHTMLfromBakaTsuki(postdata.title).then(jsondata => {
       let data = {}
-      if (jsondata) {
-        let $ = cheerio.load(jsondata)
+      let $ = cheerio.load(jsondata)
 
-        //check if the page exists
-        if (
-          $('#content')
-            .text()
-            .match(/There is currently no text in this page/i)
-        ) {
-          res.send({ error: 'Page does not exist.' })
-          return false
-        }
-
-        let date = $('#footer-info-lastmod').html()
-        $('body').replaceWith($('#content'))
-        //Preload the data for the light novel
-
-        data.title = postdata.title.replace(/_/g, ' ')
-        let status = $("table:contains('Project')")
+      //check if the page exists
+      if (
+        $('#content')
           .text()
-          .match(/HALTED|IDLE|ABANDONED|WARNING/i)
-        data.status = status ? status[0] : 'active'
-        data.author = ''
-        data.synopsis = ''
-        data.date = utils.parseDate(date)
-        $('table:contains(Project)').html('')
-        data.cover = $('.thumbinner')
-          .find('img')
+          .match(/There is currently no text in this page/i)
+      ) {
+        res.send({ error: 'Page does not exist.' })
+        return false
+      }
+
+      let date = $('#footer-info-lastmod').html()
+      $('body').replaceWith($('#content'))
+      //Preload the data for the light novel
+
+      data.title = postdata.title.replace(/_/g, ' ')
+      let status = $("table:contains('Project')")
+        .text()
+        .match(/HALTED|IDLE|ABANDONED|WARNING/i)
+      data.status = status ? status[0] : 'active'
+      data.author = ''
+      data.synopsis = ''
+      data.date = utils.parseDate(date)
+      $('table:contains(Project)').html('')
+      data.cover = $('.thumbinner')
+        .find('img')
+        .attr('src')
+      if (!data.cover) {
+        data.cover = $('img')
+          .first()
           .attr('src')
-        if (!data.cover) {
-          data.cover = $('img')
-            .first()
-            .attr('src')
-        }
-        if (data.cover && data.cover.match(/^\/project/g)) {
-          data.cover = 'https://www.baka-tsuki.org' + data.cover
-        }
+      }
+      if (data.cover && data.cover.match(/^\/project/g)) {
+        data.cover = 'https://www.baka-tsuki.org' + data.cover
+      }
 
-        //get categories
-        data.categories = []
-        $('#mw-normal-catlinks ul li').each(function() {
-          data.categories.push($(this).text())
+      //get categories
+      data.categories = []
+      $('#mw-normal-catlinks ul li').each((i, el) => {
+        let element = $(el)
+        data.categories.push(element.text())
+      })
+      if (data.categories.indexOf('Completed Project') >= 0) {
+        data.status = 'completed'
+      } else if (data.categories.indexOf('Active Project') >= 0) {
+        data.status = 'active'
+      }
+
+      let synopsiswalk = $(':header')
+        .filter((i, el) => {
+          let element = $(el)
+          return element.text().match(/synopsis/i) != null
         })
-        if (data.categories.indexOf('Completed Project') >= 0) {
-          data.status = 'completed'
-        } else if (data.categories.indexOf('Active Project') >= 0) {
-          data.status = 'active'
+        .nextUntil($(':header'))
+      let synopsisstring = ''
+      synopsiswalk.each((i, el) => {
+        let element = $(el)
+        if (element) {
+          synopsisstring += element.text()
         }
+      })
+      //Placing empty string in JSON will result in undefined.
+      data.synopsis = synopsisstring
 
-        let synopsiswalk = $(':header')
-          .filter(function() {
-            return (
-              $(this)
-                .text()
-                .match(/synopsis/i) != null
-            )
-          })
-          .nextUntil($(':header'))
-        let synopsisstring = ''
-        synopsiswalk.each(function() {
-          if ($(this).text()) {
-            synopsisstring += $(this).text()
+      //If synopsis not found, get the paragraphs containing the title instead.
+      if (synopsisstring == '') {
+        synopsiswalk = $(`p:contains('${data.title}')`)
+        synopsisstring = synopsiswalk.text()
+        synopsiswalk = synopsiswalk.nextUntil($(':not(p)'))
+        synopsiswalk.each((i, el) => {
+          let element = $(el)
+          if (element) {
+            synopsisstring += element.text()
           }
         })
-        //Placing empty string in JSON will result in undefined.
         data.synopsis = synopsisstring
+      }
 
-        //If synopsis not found, get the paragraphs containing the title instead.
-        if (synopsisstring == '') {
-          synopsiswalk = $(`p:contains('${data.title}')`)
-          synopsisstring = synopsiswalk.text()
-          synopsiswalk = synopsiswalk.nextUntil($(':not(p)'))
-          synopsiswalk.each(function() {
-            if ($(this).text()) {
-              synopsisstring += $(this).text()
+      //Completed Preloading of Data
+
+      //Get data about available volumes from the toc
+      let one_off = !$('#toc ul li')
+        .text()
+        .match(/volume/i)
+        ? true
+        : false
+
+      // let one_off = $("#toc ul li").children('li :contains('+data.title.replace(/_/g," ")+')').parent().children("ul").text()=="";
+      data.one_off = one_off
+
+      data.series = []
+      $('#toc ul li').each((i, el) => {
+        //Notes that each page format has its own quirks and the program attempts to match all of them
+        let element = $(el)
+        if (
+          ((element
+            .text()
+            .match(
+              /[\'\"]+ series|by| story$| stories|miscellaneous|full| Story Arc /i
+            ) &&
+            !element.text().match(/miscellaneous notes/i)) ||
+            (one_off &&
+              element
+                .text()
+                .match(new RegExp(data.title.replace('_', ' '), 'gi')))) &&
+          element.hasClass('toclevel-1')
+        ) {
+          //Note: This matches any title that remotely looks like a link to the volumes, e.g. Shakugan no Shana
+          let volumelist = element
+            .text()
+            .split(/\n/g)
+            .filter(n => {
+              return n != ''
+            })
+          let volumesnames = utils.rest(volumelist)
+          let seriesname = utils.stripNumbering(volumelist[0])
+          let authorname = seriesname.split(/\sby\s/g)
+
+          if (authorname && authorname[1]) {
+            data.author = authorname[1]
+          }
+          //Prepare nested JSON format for volume list for each series.
+          let seriesdata = {}
+          seriesdata.title = seriesname
+          seriesdata.books = volumesnames.map(ele => {
+            return {
+              title: utils.stripNumbering(ele),
+              chapters: []
             }
           })
-          data.synopsis = synopsisstring
+          if (seriesdata.books.length > 0 || one_off) {
+            //Problem with one-offs, they do not contain any volumes.
+            data.series.push(seriesdata)
+          }
         }
+      })
 
-        //Completed Preloading of Data
-
-        //Get data about available volumes from the toc
-        let one_off = !$('#toc ul li')
+      //Sometimes the data for authors is hidden in the first paragraph instead
+      if (
+        !data.author &&
+        $('p')
           .text()
-          .match(/volume/i)
-          ? true
-          : false
+          .match(/\sby\s(.+)\./i)
+      ) {
+        //Search for author name between "by" and a non-character or the word "and"
+        let works = $('p')
+          .text()
+          .match(/\sby\s(.+)\./i)[1]
+          .split(/and|with/)
+        let authorname = works[0].replace(/^\s+|\s+$/g, '')
+        data.author = authorname
+      }
+      if (
+        !data.illustrator &&
+        $('p')
+          .text()
+          .match(/\sby\s(.+\.)/i)
+      ) {
+        let works = $('p')
+          .text()
+          .match(/\sby\s(.+\.)/i)[1]
+          .split(/and|with/)
+        if (works[1]) {
+          let illustrator = works[1].match(/\sby\s(.+)\./i)
+          if (illustrator && illustrator[1]) {
+            data.illustrator = illustrator[1]
+          } else {
+            data.illustrator = ''
+          }
+        }
+      }
 
-        // let one_off = $("#toc ul li").children('li :contains('+data.title.replace(/_/g," ")+')').parent().children("ul").text()=="";
-        data.one_off = one_off
-
-        data.series = []
-        $('#toc ul li').each(function() {
-          //Notes that each page format has its own quirks and the program attempts to match all of them
-          if (
-            (($(this)
-              .text()
-              .match(
-                /[\'\"]+ series|by| story$| stories|miscellaneous|full| Story Arc /i
-              ) &&
-              !$(this)
-                .text()
-                .match(/miscellaneous notes/i)) ||
-              (one_off &&
-                $(this)
-                  .text()
-                  .match(new RegExp(data.title.replace('_', ' '), 'gi')))) &&
-            $(this).hasClass('toclevel-1')
-          ) {
-            //Note: This matches any title that remotely looks like a link to the volumes, e.g. Shakugan no Shana
-            let volumelist = $(this)
-              .text()
-              .split(/\n/g)
-              .filter(function(n) {
-                return n != ''
-              })
-            let volumesnames = utils.rest(volumelist)
-            let seriesname = utils.stripNumbering(volumelist[0])
-            let authorname = seriesname.split(/\sby\s/g)
-
-            if (authorname && authorname[1]) {
-              data.author = authorname[1]
+      let imageplacing = 0
+      if (data.series.length > 0) {
+        //Determine the type of overall image placing
+        let firstbook = one_off
+          ? data.title.replace(/_/g, ' ')
+          : data.series[0].books[0]
+        if (firstbook) {
+          let volheading = $(
+            ":header:contains('" + firstbook.title + "')"
+          ).first()
+          let coverimage = volheading.prevUntil($(':header')).find('img')
+          if (coverimage.attr('src')) {
+            //Image before the heading
+            imageplacing = 1
+          } else {
+            coverimage = volheading.nextUntil($(':header')).find('img')
+            if (coverimage.attr('src')) {
+              //Image in tables before the heading
+              imageplacing = 3
+            } else {
+              //Image in the series after the heading
+              imageplacing = 2
             }
-            //Prepare nested JSON format for volume list for each series.
-            let seriesdata = {}
-            seriesdata.title = seriesname
-            seriesdata.books = volumesnames.map(function(ele) {
-              return {
-                title: utils.stripNumbering(ele),
-                chapters: []
+          }
+        }
+        //Search for available chapters and their active wikilinks from the page.
+        for (let serieskey in data.series) {
+          for (let volumekey in data.series[serieskey].books) {
+            //First search for links in the heading.
+            //This includes full text page versions.
+            let heading = $(
+              ":header:contains('" +
+                data.series[serieskey].books[volumekey].title.match(
+                  /[A-Za-z\d\s\:]+/gi
+                )[0] +
+                "')"
+            ).first()
+            let headinglinks = heading.find('a')
+            headinglinks.each((i, el) => {
+              //Reject links to edit the page or template and resource links.
+              let element = $(el)
+              if (
+                element.attr('title') &&
+                !element.attr('href').match(/edit|\=Template|\.\w{0,4}$/g)
+              ) {
+                let chapterdata = {}
+                chapterdata.title = element.text()
+                chapterdata.page = element
+                  .attr('href')
+                  .replace(/\/project\/index.php\?title\=/g, '')
+                let linktype = element.attr('href').match(/^\/project/g)
+                  ? 'internal'
+                  : 'external'
+                chapterdata.linktype = linktype
+                if (linktype === 'internal') {
+                  chapterdata.link =
+                    'https://www.baka-tsuki.org' + element.attr('href')
+                } else {
+                  chapterdata.link = element.attr('href')
+                }
+                data.series[serieskey].books[volumekey].chapters.push(
+                  chapterdata
+                )
               }
             })
-            if (seriesdata.books.length > 0 || one_off) {
-              //Problem with one-offs, they do not contain any volumes.
-              data.series.push(seriesdata)
-            }
-          }
-        })
 
-        //Sometimes the data for authors is hidden in the first paragraph instead
-        if (
-          !data.author &&
-          $('p')
-            .text()
-            .match(/\sby\s(.+)\./i)
-        ) {
-          //Search for author name between "by" and a non-character or the word "and"
-          let works = $('p')
-            .text()
-            .match(/\sby\s(.+)\./i)[1]
-            .split(/and|with/)
-          let authorname = works[0].replace(/^\s+|\s+$/g, '')
-          data.author = authorname
-        }
-        if (
-          !data.illustrator &&
-          $('p')
-            .text()
-            .match(/\sby\s(.+\.)/i)
-        ) {
-          let works = $('p')
-            .text()
-            .match(/\sby\s(.+\.)/i)[1]
-            .split(/and|with/)
-          if (works[1]) {
-            let illustrator = works[1].match(/\sby\s(.+)\./i)
-            if (illustrator && illustrator[1]) {
-              data.illustrator = illustrator[1]
-            } else {
-              data.illustrator = ''
-            }
-          }
-        }
-
-        let imageplacing = 0
-        if (data.series.length > 0) {
-          //Determine the type of overall image placing
-          let firstbook = one_off
-            ? data.title.replace(/_/g, ' ')
-            : data.series[0].books[0]
-          if (firstbook) {
-            let volheading = $(
-              ":header:contains('" + firstbook.title + "')"
-            ).first()
-            let coverimage = volheading.prevUntil($(':header')).find('img')
-            if (coverimage.attr('src')) {
-              //Image before the heading
-              imageplacing = 1
-            } else {
-              coverimage = volheading.nextUntil($(':header')).find('img')
-              if (coverimage.attr('src')) {
-                //Image in tables before the heading
-                imageplacing = 3
-              } else {
-                //Image in the series after the heading
-                imageplacing = 2
-              }
-            }
-          }
-          //Search for available chapters and their active wikilinks from the page.
-          for (let serieskey in data.series) {
-            for (let volumekey in data.series[serieskey].books) {
-              //First search for links in the heading.
-              //This includes full text page versions.
-              let heading = $(
-                ":header:contains('" +
-                  data.series[serieskey].books[volumekey].title.match(
-                    /[A-Za-z\d\s\:]+/gi
-                  )[0] +
-                  "')"
-              ).first()
-              let headinglinks = heading.find('a')
-              headinglinks.each(function() {
-                //Reject links to edit the page or template and resource links.
-                if (
-                  $(this).attr('title') &&
-                  !$(this)
-                    .attr('href')
-                    .match(/edit|\=Template|\.\w{0,4}$/g)
-                ) {
-                  let chapterdata = {}
-                  chapterdata.title = $(this).text()
-                  chapterdata.page = $(this)
-                    .attr('href')
-                    .replace(/\/project\/index.php\?title\=/g, '')
-                  let linktype = $(this)
-                    .attr('href')
-                    .match(/^\/project/g)
-                    ? 'internal'
-                    : 'external'
-                  chapterdata.linktype = linktype
-                  if (linktype == 'internal') {
-                    chapterdata.link =
-                      'https://www.baka-tsuki.org' + $(this).attr('href')
-                  } else {
-                    chapterdata.link = $(this).attr('href')
-                  }
-                  data.series[serieskey].books[volumekey].chapters.push(
-                    chapterdata
-                  )
-                }
-              })
-
-              //Walk through the following series for links until the next heading.
-              let walker = heading.nextUntil($(':header'))
-              let chapterlinks = walker.find('a')
-              chapterlinks.each(function() {
-                if (
-                  !$(this)
-                    .attr('href')
-                    .match(/edit|Template/g) &&
-                  !$(this)
-                    .find('img')
-                    .attr('src')
-                ) {
-                  alternatetext =
-                    $(this)
-                      .first()
-                      .text()
-                      .split(' ').length > 1
-                      ? $(this)
-                          .first()
-                          .text()
-                      : $(this)
-                          .parent()
-                          .first()
-                          .text()
-                  let titletext = $(this).attr('title')
-                    ? $(this).attr('title')
-                    : alternatetext
-                  let chapterdata = {}
-                  chapterdata.title = titletext
-                  chapterdata.page = $(this)
-                    .attr('href')
-                    .replace(/\/project\/index.php\?title\=/g, '')
-                  let linktype = $(this)
-                    .attr('href')
-                    .match(/^\/project/g)
-                    ? 'internal'
-                    : 'external'
-                  chapterdata.linktype = linktype
-                  if (linktype == 'internal') {
-                    chapterdata.link =
-                      'https://www.baka-tsuki.org' + $(this).attr('href')
-                  } else {
-                    chapterdata.link = $(this).attr('href')
-                  }
-                  data.series[serieskey].books[volumekey].chapters.push(
-                    chapterdata
-                  )
-                }
-              })
-
-              //Find the cover image in each volume section
-              if (imageplacing == 3) {
-                let coverimg = walker.find('img')
-                if (coverimg) {
-                  coverimgsrc = coverimg.attr('src')
-                  if (
-                    coverimg.attr('src') &&
-                    coverimg.attr('src').match(/^\/project/g)
-                  ) {
-                    coverimgsrc = 'https://www.baka-tsuki.org' + coverimgsrc
-                  }
-                  data.series[serieskey].books[volumekey].cover = coverimgsrc
-                }
-              } else if (imageplacing == 2) {
-                let coverimg = heading.closest('table').find('img')
-                if (coverimg) {
-                  coverimgsrc = coverimg.attr('src')
-                  if (
-                    coverimg.attr('src') &&
-                    coverimg.attr('src').match(/^\/project/g)
-                  ) {
-                    coverimgsrc = 'https://www.baka-tsuki.org' + coverimgsrc
-                  }
-                  data.series[serieskey].books[volumekey].cover = coverimgsrc
-                }
-              } else if (imageplacing == 1) {
-                let coverimg = heading.prevUntil($(':header')).find('img')
-                if (coverimg) {
-                  coverimgsrc = coverimg.attr('src')
-                  if (
-                    coverimg.attr('src') &&
-                    coverimg.attr('src').match(/^\/project/g)
-                  ) {
-                    coverimgsrc = 'https://www.baka-tsuki.org' + coverimgsrc
-                  }
-                  data.series[serieskey].books[volumekey].cover = coverimgsrc
-                }
-              }
-            }
-            //This covers the special case where the series contains direct links to stories instead of volumes.
-            if (data.series[serieskey].books.length < 1) {
-              let walker = $(
-                ":header:contains('" + data.series[serieskey].title + "')"
-              ).nextUntil($(':header'))
-              let chapterlinks = walker.find('a')
-              chapterlinks.each(function() {
-                if (
-                  !$(this)
-                    .attr('href')
-                    .match(/edit|\=Template|\.\w{0,4}$/g)
-                ) {
-                  let titletext = $(this).attr('title')
-                    ? $(this).attr('title')
-                    : $(this)
-                        .parents()
+            //Walk through the following series for links until the next heading.
+            let walker = heading.nextUntil($(':header'))
+            let chapterlinks = walker.find('a')
+            chapterlinks.each((i, el) => {
+              let element = $(el)
+              if (
+                !element.attr('href').match(/edit|Template/g) &&
+                !element.find('img').attr('src')
+              ) {
+                alternatetext =
+                  element
+                    .first()
+                    .text()
+                    .split(' ').length > 1
+                    ? element.first().text()
+                    : element
+                        .parent()
                         .first()
                         .text()
-                  let chapterdata = {}
-                  chapterdata.title = titletext
-                  chapterdata.page = $(this)
-                    .attr('href')
-                    .replace(/\/project\/index.php\?title\=/g, '')
-                  let linktype = $(this)
-                    .attr('href')
-                    .match(/^\/project/g)
-                    ? 'internal'
-                    : 'external'
-                  chapterdata.linktype = linktype
-                  if (linktype == 'internal') {
-                    chapterdata.link =
-                      'https://www.baka-tsuki.org' + $(this).attr('href')
-                  } else {
-                    chapterdata.link = $(this).attr('href')
-                  }
-                  data.series[serieskey].books.push(chapterdata)
+                let titletext = element.attr('title')
+                  ? element.attr('title')
+                  : alternatetext
+                let chapterdata = {}
+                chapterdata.title = titletext
+                chapterdata.page = element
+                  .attr('href')
+                  .replace(/\/project\/index.php\?title\=/g, '')
+                let linktype = element.attr('href').match(/^\/project/g)
+                  ? 'internal'
+                  : 'external'
+                chapterdata.linktype = linktype
+                if (linktype == 'internal') {
+                  chapterdata.link =
+                    'https://www.baka-tsuki.org' + element.attr('href')
+                } else {
+                  chapterdata.link = element.attr('href')
                 }
-              })
-            }
+                data.series[serieskey].books[volumekey].chapters.push(
+                  chapterdata
+                )
+              }
+            })
 
-            //Special Sugar_Dark Edge Case: Chapters in volume is categorised by other series.
-            //This is only for cases where there is no obvious order in chapters.
-            //I.e. multiple chapter 1's
-            //This code should be changed in favour of a depth-2 search for li elements,
-            //but most novels isn't format that way.
-            if (data.title.match(/Sugar Dark/i)) {
-              let holeid = ''
-              let booklist = data.series[serieskey].books
-              for (let bookind in booklist) {
-                for (let chapterind in booklist[bookind].chapters) {
-                  let ele = booklist[bookind].chapters[chapterind].title
-                  if (ele.match(/^hole/i) && holeid != ele) {
-                    holeid = ele
-                  }
-                  if (ele.match(/chapter/i)) {
-                    data.series[serieskey].books[bookind].chapters[
-                      chapterind
-                    ].title =
-                      holeid + ':' + ele
-                  }
+            //Find the cover image in each volume section
+            if (imageplacing == 3) {
+              let coverimg = walker.find('img')
+              if (coverimg) {
+                coverimgsrc = coverimg.attr('src')
+                if (
+                  coverimg.attr('src') &&
+                  coverimg.attr('src').match(/^\/project/g)
+                ) {
+                  coverimgsrc = 'https://www.baka-tsuki.org' + coverimgsrc
+                }
+                data.series[serieskey].books[volumekey].cover = coverimgsrc
+              }
+            } else if (imageplacing == 2) {
+              let coverimg = heading.closest('table').find('img')
+              if (coverimg) {
+                coverimgsrc = coverimg.attr('src')
+                if (
+                  coverimg.attr('src') &&
+                  coverimg.attr('src').match(/^\/project/g)
+                ) {
+                  coverimgsrc = 'https://www.baka-tsuki.org' + coverimgsrc
+                }
+                data.series[serieskey].books[volumekey].cover = coverimgsrc
+              }
+            } else if (imageplacing == 1) {
+              let coverimg = heading.prevUntil($(':header')).find('img')
+              if (coverimg) {
+                coverimgsrc = coverimg.attr('src')
+                if (
+                  coverimg.attr('src') &&
+                  coverimg.attr('src').match(/^\/project/g)
+                ) {
+                  coverimgsrc = 'https://www.baka-tsuki.org' + coverimgsrc
+                }
+                data.series[serieskey].books[volumekey].cover = coverimgsrc
+              }
+            }
+          }
+          //This covers the special case where the series contains direct links to stories instead of volumes.
+          if (data.series[serieskey].books.length < 1) {
+            let walker = $(
+              ":header:contains('" + data.series[serieskey].title + "')"
+            ).nextUntil($(':header'))
+            let chapterlinks = walker.find('a')
+            chapterlinks.each((i, el) => {
+              let element = $(el)
+              if (!element.attr('href').match(/edit|\=Template|\.\w{0,4}$/g)) {
+                let titletext = element.attr('title')
+                  ? element.attr('title')
+                  : element
+                      .parents()
+                      .first()
+                      .text()
+                let chapterdata = {}
+                chapterdata.title = titletext
+                chapterdata.page = element
+                  .attr('href')
+                  .replace(/\/project\/index.php\?title\=/g, '')
+                let linktype = element.attr('href').match(/^\/project/g)
+                  ? 'internal'
+                  : 'external'
+                chapterdata.linktype = linktype
+                if (linktype == 'internal') {
+                  chapterdata.link =
+                    'https://www.baka-tsuki.org' + element.attr('href')
+                } else {
+                  chapterdata.link = element.attr('href')
+                }
+                data.series[serieskey].books.push(chapterdata)
+              }
+            })
+          }
+
+          //Special Sugar_Dark Edge Case: Chapters in volume is categorised by other series.
+          //This is only for cases where there is no obvious order in chapters.
+          //I.e. multiple chapter 1's
+          //This code should be changed in favour of a depth-2 search for li elements,
+          //but most novels isn't format that way.
+          if (data.title.match(/Sugar Dark/i)) {
+            let holeid = ''
+            let booklist = data.series[serieskey].books
+            for (let bookind in booklist) {
+              for (let chapterind in booklist[bookind].chapters) {
+                let ele = booklist[bookind].chapters[chapterind].title
+                if (ele.match(/^hole/i) && holeid != ele) {
+                  holeid = ele
+                }
+                if (ele.match(/chapter/i)) {
+                  data.series[serieskey].books[bookind].chapters[
+                    chapterind
+                  ].title =
+                    holeid + ':' + ele
                 }
               }
             }
           }
         }
-
-        // Filtering mechanism
-        // While this may be wasteful since we don't filter while we insert the data,
-        // However, this provides future oppurtunity to cache results instead of parsing it everytime.
-        // Also the code would be much more maintainable. (The previous version was filter while parsing)
-
-        // filter by series
-        if (postdata.series) {
-          let tempseries = []
-          for (let serieskey in data.series) {
-            //Case insensitive search
-            //No url sanitisation so users can use regex search
-            let re = new RegExp(postdata.series, 'i')
-            if (data.series[serieskey].title.match(re)) {
-              tempseries.push(data.series[serieskey])
-            }
-          }
-          data.series = tempseries
-        }
-
-        //filter by volume
-        if (postdata.volume) {
-          for (let serieskey in data.series) {
-            let tempvol = []
-            for (let volumekey in data.series[serieskey].books) {
-              let re = new RegExp(postdata.volume, 'i')
-              if (data.series[serieskey].books[volumekey].title.match(re)) {
-                tempvol.push(data.series[serieskey].books[volumekey])
-              }
-            }
-            data.series[serieskey].books = tempvol
-          }
-        }
-
-        //convenience filter: By volume number
-        if (postdata.volumeno) {
-          for (let serieskey in data.series) {
-            let tempvol = []
-            for (let volumekey in data.series[serieskey].books) {
-              //Non number input will be removed
-              let re1 = new RegExp(
-                'volume.?' + postdata.volumeno.match(/\d+/g) + '$',
-                'i'
-              )
-              volume_match = data.series[serieskey].books[
-                volumekey
-              ].title.match(/\w+ ?\d+/gi)
-              if (volume_match && volume_match[0].match(re1)) {
-                tempvol.push(data.series[serieskey].books[volumekey])
-              }
-            }
-            data.series[serieskey].books = tempvol
-          }
-        }
-        if (one_off) {
-          data.series.map(function(ele) {
-            return ele.renameProperty('books', 'chapters')
-          })
-        }
-        res.send(data)
       }
+
+      // Filtering mechanism
+      // While this may be wasteful since we don't filter while we insert the data,
+      // However, this provides future oppurtunity to cache results instead of parsing it everytime.
+      // Also the code would be much more maintainable. (The previous version was filter while parsing)
+
+      // filter by series
+      if (postdata.series) {
+        let tempseries = []
+        for (let serieskey in data.series) {
+          //Case insensitive search
+          //No url sanitisation so users can use regex search
+          let re = new RegExp(postdata.series, 'i')
+          if (data.series[serieskey].title.match(re)) {
+            tempseries.push(data.series[serieskey])
+          }
+        }
+        data.series = tempseries
+      }
+
+      //filter by volume
+      if (postdata.volume) {
+        for (let serieskey in data.series) {
+          let tempvol = []
+          for (let volumekey in data.series[serieskey].books) {
+            let re = new RegExp(postdata.volume, 'i')
+            if (data.series[serieskey].books[volumekey].title.match(re)) {
+              tempvol.push(data.series[serieskey].books[volumekey])
+            }
+          }
+          data.series[serieskey].books = tempvol
+        }
+      }
+
+      //convenience filter: By volume number
+      if (postdata.volumeno) {
+        for (let serieskey in data.series) {
+          let tempvol = []
+          for (let volumekey in data.series[serieskey].books) {
+            //Non number input will be removed
+            let re1 = new RegExp(
+              'volume.?' + postdata.volumeno.match(/\d+/g) + '$',
+              'i'
+            )
+            volume_match = data.series[serieskey].books[volumekey].title.match(
+              /\w+ ?\d+/gi
+            )
+            if (volume_match && volume_match[0].match(re1)) {
+              tempvol.push(data.series[serieskey].books[volumekey])
+            }
+          }
+          data.series[serieskey].books = tempvol
+        }
+      }
+      if (one_off) {
+        data.series.map(ele => {
+          return ele.renameProperty('books', 'chapters')
+        })
+      }
+      res.send(data)
     })
   }
 }
