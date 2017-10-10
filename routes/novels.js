@@ -842,7 +842,7 @@ novels.seriesTitleFilterByDownload = (postdata, res) => {
       }
       if (one_off) {
         data.series.map(ele => {
-          return ele.renameProperty('books', 'chapters')
+          // return ele.renameProperty('books', 'chapters')
         })
       }
       res.send(data)
