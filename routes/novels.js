@@ -5,7 +5,7 @@ novels = {}
 
 novels.pageDownload = function(postdata, res) {
   if (postdata.title) {
-    utils.downloadHTMLfromBakaTsuki(postdata.title, function(jsondata) {
+    utils.downloadHTMLfromBakaTsuki(postdata.title).then(jsondata => {
       if (jsondata) {
         let $ = cheerio.load(jsondata)
         //Remove any stylesheets and script
@@ -45,7 +45,7 @@ novels.seriesGenreFilterByDownload = function(postdata, res) {
         'action=query&prop=info|revisions&generator=categorymembers&gcmlimit=500&gcmtype=page&gcmtitle=Category:Genre_-_'
       if (genreList.length > 0) {
         url += utils.last(genreList)
-        utils.downloadJSONfromBakaTsukiMediaWiki(url, function(jsondata) {
+        utils.downloadJSONfromBakaTsukiMediaWiki(url).then(jsondata => {
           if (jsondata.query && jsondata.query.pages) {
             tempdata = utils.mergeObjects(tempdata, jsondata.query.pages)
           }
@@ -80,12 +80,16 @@ novels.lastUpdatesTimeByDownload = function(postdata, res) {
     //This method does not allow checking if the page has just been created
     //That will have to depend on local caching on the application
     //As there would have to be a reference time to check if the page has been created or not.
-    utils.downloadJSONfromBakaTsukiMediaWiki(
-      'action=query&prop=info|revisions&titles=' + postdata.titles,
-      function(titledata) {
-        utils.downloadJSONfromBakaTsukiMediaWiki(
-          'action=query&prop=info|revisions&pageids=' + postdata.pageids,
-          function(pagedata) {
+    utils
+      .downloadJSONfromBakaTsukiMediaWiki(
+        'action=query&prop=info|revisions&titles=' + postdata.titles
+      )
+      .then(titledata => {
+        utils
+          .downloadJSONfromBakaTsukiMediaWiki(
+            'action=query&prop=info|revisions&pageids=' + postdata.pageids
+          )
+          .then(pagedata => {
             //Not using map and filter to prevent nulls into the array easily
             let data = []
             if (
@@ -114,10 +118,8 @@ novels.lastUpdatesTimeByDownload = function(postdata, res) {
               }
             }
             res.send(data)
-          }
-        )
-      }
-    )
+          })
+      })
   } else if (postdata.updates) {
     postdata.updates = postdata.updates.match(/\d/g).join('')
     //returns the latest newest pages up to a certain number
@@ -138,7 +140,7 @@ novels.lastUpdatesTimeByDownload = function(postdata, res) {
         //Note that this must be in YYYY-MM-DDTHH:MM:SSZ format
         url += '&rcstart=' + postdata.until
       }
-      utils.downloadJSONfromBakaTsukiMediaWiki(url, function(jsondata) {
+      utils.downloadJSONfromBakaTsukiMediaWiki(url).then(jsondata => {
         let edits = jsondata.query.recentchanges
         if (
           jsondata['query-continue'] &&
@@ -191,10 +193,12 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
     let language = utils.capitalizeFirstLetter(postdata.language)
     let category = titletype + '_(' + language + ')'
     //Note that the use of gcmlimit=500 only works now when there is only around 150-255 light novels in BT.
-    utils.downloadJSONfromBakaTsukiMediaWiki(
-      'action=query&prop=info|revisions&generator=categorymembers&gcmlimit=500&gcmtype=page&gcmtitle=Category:' +
-        category,
-      function(jsondata) {
+    utils
+      .downloadJSONfromBakaTsukiMediaWiki(
+        'action=query&prop=info|revisions&generator=categorymembers&gcmlimit=500&gcmtype=page&gcmtitle=Category:' +
+          category
+      )
+      .then(jsondata => {
         res.send({
           type: titletype,
           language: language,
@@ -208,16 +212,17 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
             }
           })
         })
-      }
-    )
+      })
   } else if (postdata.language && !postdata.type) {
     //Only provide a list of title types for the language
     //Example: English : Light Novel, Teaser, Original Novel
     let language = utils.capitalizeFirstLetter(postdata.language)
-    utils.downloadJSONfromBakaTsukiMediaWiki(
-      'action=query&cmlimit=400&list=categorymembers&cmtitle=Category:' +
-        language,
-      function(jsondata) {
+    utils
+      .downloadJSONfromBakaTsukiMediaWiki(
+        'action=query&cmlimit=400&list=categorymembers&cmtitle=Category:' +
+          language
+      )
+      .then(jsondata => {
         res.send({
           language: language,
           types: jsondata.query.categorymembers
@@ -230,8 +235,7 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
                 .join('_')
             })
         })
-      }
-    )
+      })
   } else if (
     postdata.type &&
     !postdata.type.match(/Original_?novel/i) &&
@@ -239,10 +243,12 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
   ) {
     //Provide languages available for that type.
     let titletype = utils.capitalizeFirstLetter(postdata.type)
-    utils.downloadJSONfromBakaTsukiMediaWiki(
-      'action=query&cmlimit=400&list=categorymembers&cmtitle=Category:' +
-        titletype,
-      function(jsondata) {
+    utils
+      .downloadJSONfromBakaTsukiMediaWiki(
+        'action=query&cmlimit=400&list=categorymembers&cmtitle=Category:' +
+          titletype
+      )
+      .then(jsondata => {
         res.send({
           types: titletype,
           language: jsondata.query.categorymembers
@@ -253,13 +259,14 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
               return ele.title.match(/\((.+)\)/g, '')[0].replace(/[\(\)]/g, '')
             })
         })
-      }
-    )
+      })
   } else if (postdata.type && postdata.type.match(/Original_?novel/i)) {
     //Directly provide all Original Novels available as they are not divided by language.
-    utils.downloadJSONfromBakaTsukiMediaWiki(
-      'action=query&cmlimit=400&list=categorymembers&cmtitle=Category:Original_novel',
-      function(jsondata) {
+    utils
+      .downloadJSONfromBakaTsukiMediaWiki(
+        'action=query&cmlimit=400&list=categorymembers&cmtitle=Category:Original_novel'
+      )
+      .then(jsondata => {
         res.send({
           type: 'Original novel',
           titles: jsondata.query.categorymembers.map(function(ele) {
@@ -269,20 +276,20 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
             }
           })
         })
-      }
-    )
+      })
   } else if (postdata.title) {
     //Get all categories in this titles.
-    utils.downloadJSONfromBakaTsukiMediaWiki(
-      'action=query&generator=categories&titles=' + postdata.title,
-      function(jsondata) {
+    utils
+      .downloadJSONfromBakaTsukiMediaWiki(
+        'action=query&generator=categories&titles=' + postdata.title
+      )
+      .then(jsondata => {
         res.send(
           jsondata.query.pages.map(function(ele) {
             return ele.title.replace(/Category:/g, '')
           })
         )
-      }
-    )
+      })
   } else {
     //Main bulk of the category search
     postlist = []
@@ -317,7 +324,7 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
         'action=query&prop=info|revisions&generator=categorymembers&gcmlimit=500&gcmtype=page&gcmtitle=Category:'
       if (genreList.length > 0) {
         url += utils.last(genreList)
-        utils.downloadJSONfromBakaTsukiMediaWiki(url, function(jsondata) {
+        utils.downloadJSONfromBakaTsukiMediaWiki(url).then(jsondata => {
           if (jsondata.query && jsondata.query.pages) {
             tempdata = utils.mergeObjects(tempdata, jsondata.query.pages)
           }
@@ -350,17 +357,18 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
     if (!postdata.category) {
       getAllGenres(postlist)
     } else {
-      utils.downloadJSONfromBakaTsukiMediaWiki(
-        'action=query&generator=categorymembers&gcmlimit=500&gcmtitle=Category:' +
-          postdata.category,
-        function(jsondata) {
+      utils
+        .downloadJSONfromBakaTsukiMediaWiki(
+          'action=query&generator=categorymembers&gcmlimit=500&gcmtitle=Category:' +
+            postdata.category
+        )
+        .then(jsondata => {
           res.send(
             jsondata.query.pages.map(function(ele) {
               return ele.title.replace(/Category:/i, '')
             })
           )
-        }
-      )
+        })
     }
   }
 }
@@ -368,7 +376,7 @@ novels.seriesCategoryFilterByDownload = function(postdata, res) {
 novels.seriesTitleFilterByDownload = function(postdata, res) {
   // Continue only if series title is available.
   if (postdata.title) {
-    utils.downloadHTMLfromBakaTsuki(postdata.title, function(jsondata) {
+    utils.downloadHTMLfromBakaTsuki(postdata.title).then(jsondata => {
       let data = {}
       if (jsondata) {
         let $ = cheerio.load(jsondata)

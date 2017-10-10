@@ -1,4 +1,4 @@
-const https = require('https')
+const fetch = require('node-fetch')
 const moment = require('moment')
 
 //Utility functions
@@ -56,47 +56,53 @@ utils.arrayUnique = function(a) {
   }, [])
 }
 
-utils.downloadJSONfromBakaTsukiMediaWiki = function(url_params, callback) {
-  https
-    .get(
-      encodeURI(
-        'https://www.baka-tsuki.org/project/api.php?format=json&' + url_params
-      ),
-      function(res) {
-        let data = ''
-        res.on('data', function(chunk) {
-          data += chunk
-        })
-        res.on('end', function() {
-          callback(JSON.parse(data))
-        })
-      }
-    )
-    .on('error', function(err) {
-      callback(null)
-    })
+utils.downloadJSONfromBakaTsukiMediaWiki = function(url_params) {
+  const url =
+    'https://www.baka-tsuki.org/project/api.php?format=json&' + url_params
+
+  return fetch(encodeURI(url)).then(res => res.json())
+  // .get(
+  //   encodeURI(
+  //     'https://www.baka-tsuki.org/project/api.php?format=json&' + url_params
+  //   ),
+  //   function(res) {
+  //     let data = ''
+  //     res.on('data', function(chunk) {
+  //       data += chunk
+  //     })
+  //     res.on('end', function() {
+  //       callback(JSON.parse(data))
+  //     })
+  //   }
+  // )
+  // .on('error', function(err) {
+  //   callback(null)
+  // })
 }
 
-utils.downloadHTMLfromBakaTsuki = function(url_params, callback) {
-  https
-    .get(
-      encodeURI(
-        'https://www.baka-tsuki.org/project/index.php?title=' + url_params
-      ),
-      function(res) {
-        let data = ''
-        res.on('data', function(chunk) {
-          data += chunk
-        })
-        res.on('end', function() {
-          callback(data)
-        })
-      }
-    )
-    .on('error', function(err) {
-      console.log(err)
-      callback(null)
-    })
+utils.downloadHTMLfromBakaTsuki = function(url_params) {
+  const url = 'https://www.baka-tsuki.org/project/index.php?title=' + url_params
+
+  return fetch(encodeURI(url)).then(resp => resp.text())
+  // https
+  //   .get(
+  //     encodeURI(
+  //       'https://www.baka-tsuki.org/project/index.php?title=' + url_params
+  //     ),
+  //     function(res) {
+  //       let data = ''
+  //       res.on('data', function(chunk) {
+  //         data += chunk
+  //       })
+  //       res.on('end', function() {
+  //         callback(data)
+  //       })
+  //     }
+  //   )
+  //   .on('error', function(err) {
+  //     console.log(err)
+  //     callback(null)
+  //   })
 }
 
 Object.defineProperty(Object.prototype, 'map', {

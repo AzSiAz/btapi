@@ -9,15 +9,19 @@
     "build": "pkg --out-path build .",
     "devstart": "./node_modules/.bin/nodemon ./bin/www",
     "test": "./node_modules/.bin/mocha --reporter spec",
-    "coverage-report":
-      "./node_modules/.bin/mocha --reporter spec --require blanket -R html-cov > coverage.html"
+    "coverage-report": "./node_modules/.bin/mocha --reporter spec --require blanket -R html-cov > coverage.html"
   },
   "pkg": {
-    "assets": ["views/**/*", "public/**/*"]
+    "assets": [
+      "views/**/*",
+      "public/**/*"
+    ]
   },
   "config": {
     "blanket": {
-      "pattern": ["routes"]
+      "pattern": [
+        "routes"
+      ]
     }
   },
   "license": "ISC",
@@ -37,11 +41,12 @@
     "compression": "^1.7.1",
     "cookie-parser": "^1.4.3",
     "express": "^4.16.1",
-    "pkg": "^4.2.5",
-    "pug": "^2.0.0-rc.4",
     "marked": "^0.3.6",
     "moment": "^2.18.1",
     "morgan": "^1.9.0",
+    "node-fetch": "^1.7.3",
+    "pkg": "^4.2.5",
+    "pug": "^2.0.0-rc.4",
     "request": "^2.83.0",
     "serve-favicon": "^2.4.5"
   }
