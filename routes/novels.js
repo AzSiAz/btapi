@@ -495,7 +495,11 @@ novels.seriesTitleFilterByDownload = (postdata, res) => {
 
       // let one_off = $("#toc ul li").children('li :contains('+data.title.replace(/_/g," ")+')').parent().children("ul").text()=="";
       data.one_off = one_off
-      if (data.title.toLowerCase() === 'a simple survey') data.one_off = false
+      if (
+        data.title.toLowerCase() === 'a simple survey' ||
+        data.title.toLowerCase() === 'amaryllis in the ice country'
+      )
+        data.one_off = false
 
       data.series = []
       $('#toc ul li').each((i, el) => {
