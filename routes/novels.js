@@ -497,7 +497,8 @@ novels.seriesTitleFilterByDownload = (postdata, res) => {
       data.one_off = one_off
       if (
         data.title.toLowerCase() === 'a simple survey' ||
-        data.title.toLowerCase() === 'amaryllis in the ice country'
+        data.title.toLowerCase() === 'amaryllis in the ice country' ||
+        data.title.toLowerCase() === 'anohana: the flower we saw that day'
       )
         data.one_off = false
 
