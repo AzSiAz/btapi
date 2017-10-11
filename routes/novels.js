@@ -495,6 +495,7 @@ novels.seriesTitleFilterByDownload = (postdata, res) => {
 
       // let one_off = $("#toc ul li").children('li :contains('+data.title.replace(/_/g," ")+')').parent().children("ul").text()=="";
       data.one_off = one_off
+      if (data.title.toLowerCase() === 'a simple survey') data.one_off = false
 
       data.series = []
       $('#toc ul li').each((i, el) => {
@@ -507,7 +508,7 @@ novels.seriesTitleFilterByDownload = (postdata, res) => {
               /[\'\"]+ series|by| story$| stories|miscellaneous|full| Story Arc /i
             ) &&
             !element.text().match(/miscellaneous notes/i)) ||
-            (one_off &&
+            (data.one_off &&
               element
                 .text()
                 .match(new RegExp(data.title.replace('_', ' '), 'gi')))) &&
@@ -531,12 +532,9 @@ novels.seriesTitleFilterByDownload = (postdata, res) => {
           let seriesdata = {}
           seriesdata.title = seriesname
           seriesdata.books = volumesnames.map(ele => {
-            return {
-              title: utils.stripNumbering(ele),
-              chapters: []
-            }
+            return { title: utils.stripNumbering(ele), chapters: [] }
           })
-          if (seriesdata.books.length > 0 || one_off) {
+          if (seriesdata.books.length > 0 || data.one_off) {
             //Problem with one-offs, they do not contain any volumes.
             data.series.push(seriesdata)
           }
@@ -581,7 +579,7 @@ novels.seriesTitleFilterByDownload = (postdata, res) => {
       let imageplacing = 0
       if (data.series.length > 0) {
         //Determine the type of overall image placing
-        let firstbook = one_off
+        let firstbook = data.one_off
           ? data.title.replace(/_/g, ' ')
           : data.series[0].books[0]
         if (firstbook) {
@@ -840,11 +838,12 @@ novels.seriesTitleFilterByDownload = (postdata, res) => {
           data.series[serieskey].books = tempvol
         }
       }
-      // if (one_off) {
-      //   data.series.map(ele => {
-      //     return ele.renameProperty('books', 'chapters')
-      //   })
-      // }
+
+      if (data.one_off) {
+        data.series.map(ele => {
+          return ele.renameProperty('books', 'chapters')
+        })
+      }
       res.send(data)
     })
   }
